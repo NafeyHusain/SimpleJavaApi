@@ -6,7 +6,10 @@ pipeline{
         stage('Git Checkout'){
             steps{
                 script{
-                    git branch: 'main', url: 'https://github.com/NafeyHusain/SimpleJavaApi'
+                    gitCheckout(
+                                    branch: "main",
+                                    url: "https://github.com/NafeyHusain/SimpleJavaApi.git"
+                    )
                 }
             }
         }
