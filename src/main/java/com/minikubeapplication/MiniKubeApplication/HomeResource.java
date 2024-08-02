@@ -27,6 +27,16 @@ public class HomeResource {
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
 
+    @GetMapping("/data1")
+    public ResponseEntity<ResponseData> getData1() {
+        ResponseData responseData = new ResponseData();
+        responseData.setId(1);
+        responseData.setName(config.getName());
+        responseData.setPlace("Hyderabad");
+        responseData.setValue(config.getTest());
+        return new ResponseEntity<>(responseData, HttpStatus.OK);
+    }
+
     @Getter
     @Setter
     public class ResponseData {
