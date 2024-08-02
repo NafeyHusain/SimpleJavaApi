@@ -108,6 +108,61 @@ pipeline{
                    }
               }
 
+         stage('Create EKS Cluster : Terraform'){
+                     when { expression {  params.action == 'create' } }
+                     steps{
+                         script{
+
+                             dir('eks_module') {
+                               sh """
+
+                                   terraform init
+                                   terraform plan -var 'access_key=$ACCESS_KEY' -var 'secret_key=$SECRET_KEY' -var 'region=${params.Region}' --var-file=./config/terraform.tfvars
+                                   terraform apply -var 'access_key=$ACCESS_KEY' -var 'secret_key=$SECRET_KEY' -var 'region=${params.Region}' --var-file=./config/terraform.tfvars --auto-approve
+                               """
+                           }
+                         }
+                     }
+                 }
+                 stage('Connect to EKS '){
+                     when { expression {  params.action == 'create' } }
+                 steps{
+
+                     script{
+
+                         sh """
+                         aws configure set aws_access_key_id "$ACCESS_KEY"
+                         aws configure set aws_secret_access_key "$SECRET_KEY"
+                         aws configure set region "${params.Region}"
+                         aws eks --region ${params.Region} update-kubeconfig --name ${params.cluster}
+                         """
+                     }
+                 }
+                 }
+                 stage('Deployment on EKS Cluster'){
+                     when { expression {  params.action == 'create' } }
+                     steps{
+                         script{
+
+                           def apply = false
+
+                           try{
+                             input message: 'please confirm to deploy on eks', ok: 'Ready to apply the config ?'
+                             apply = true
+                           }catch(err){
+                             apply= false
+                             currentBuild.result  = 'UNSTABLE'
+                           }
+                           if(apply){
+
+                             sh """
+                               kubectl apply -f .
+                             """
+                           }
+                         }
+                     }
+                 }
+
 
     }
 
